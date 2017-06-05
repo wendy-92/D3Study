@@ -1,0 +1,19 @@
+{
+  "name": "d3study",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "webpack-dev-server -d --inline"
+  },
+  "keywords": [
+    "d3"
+  ],
+  "author": "wendy",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^2.6.1",
+    "webpack-dev-server": "^2.4.5"
+  }
+}
