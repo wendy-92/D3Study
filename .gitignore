@@ -3,8 +3,4 @@ npm-debug.log
 
 .idea/
 
-.vscode/*
-jsconfig.json
-typings/*
-
 js/bundle.js
