@@ -24,5 +24,8 @@ module.exports = {
   },
   //其它解决方案配置
   resolve: {
+    alias: {
+           'vue': 'vue/dist/vue.js'
+       }
   }
 };
