@@ -5,68 +5,62 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>demo6</title>
+    <title>demo5</title>
     <script src="../js/d3.min.js"></script>
 </head>
 <body>
-<h2>demo6</h2>
+<h2>demo5</h2>
 
 <script>
   var width = 1000;  //画布的宽度
   var height = 300;   //画布的高度
+  var padding = {left:30, right:30, top:20, bottom:20};
+  var rectNum = 5; //画布矩形坐标
+  var textset = ['CPU','RAM','云硬盘','浮动IP','XXX'];
+  var data = [1,1.2,2.4,0.8,1.6,0.2,1.5];
 
   var svg = d3.select("body")     //选择文档中的body元素
       .append("svg")          //添加一个svg元素
       .attr("width", width)       //设定宽度
       .attr("height", height);    //设定高度
-  //画布周边的空白
-  var padding = {left:30, right:30, top:20, bottom:20};
-
-  var dataset = [ 2.5 , 2.5 , 2.5 , 2.5 , 2.5 ];  //数据（表示矩形的宽度）
-
-  var textset = ['CPU','RAM','云硬盘','浮动IP','XXX'];
-
-  var data = [1,1.2,2.4,0.8,1.6,0.2,1.5]
 
   var Xlinear = d3.scaleBand()
-      .domain(d3.range(dataset.length))
+      .domain(0, rectNum)
       .range([height - padding.top - padding.bottom, 0]);
 
   var Ylinear = d3.scaleLinear()
       .domain([0, d3.max(data)])
       .range([height - padding.top - padding.bottom, 0]);
 
-  var rectPadding = 4;
+  //画矩形坐标
+  var rect = new Array(rectNum);
 
-  var pro1 = [];
+  var rectHeight = (height-padding.top-padding.bottom)/rectNum;
 
+  svg.selectAll("rect")
+      .data(rect)
+      .enter()
+      .append("rect")
+      .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+      .attr("x", 0)
+      .attr("y",function(d,i){
+        return i*(rectHeight);
+      })
+      .attr("width", width-padding.left-padding.right )
+      .attr("height", rectHeight)
+      .style("stroke", "#848484")
+      .style("stroke-width", 1)
+      .style("fill", "transparent");
 
   var area = d3.area()
-      .x(function(d,i) {console.log(i,'x0'); return Xlinear(i)+padding.left; })
-      .y1(function(d,i) {console.log(i,'y1'); return Ylinear(d)+padding.top; });
+      .x(function(d,i) { console.log(Xlinear(i)); return Xlinear(i)+padding.left; })
+      .y1(function(d,i) { return Ylinear(d)+padding.top; });
 
   svg.append("path")
       .datum(data)
       .attr("fill", "steelblue")
       .attr("d", area)
-      //.attr("transform","rotate(-90) translate(-300,"+padding.left+")")
-
-  svg.selectAll("rect")
-      .data(dataset)
-      .enter()
-      .append("rect")
-      .attr("transform","translate(" + padding.left + "," + padding.top + ")")
-      .attr("x", function(d){
-        return rectPadding/2;
-      } )
-      .attr("y",function(d,i){
-        return i*50;
-      })
-      .attr("width", width-100 )
-      .attr("height", 50)
-      .style("stroke", "#848484")
-      .style("stroke-width", 1)
-      .style("fill", "transparent");        //初始颜色为红色
+  //.attr("transform","rotate(-90) translate(-300,"+padding.left+")")
 
 
   //添加文字元素
@@ -83,25 +77,14 @@
         return 0;
       })
       .attr("dx",function(){
-        return (Xlinear.bandwidth() - rectPadding)/2;
+        return Xlinear.bandwidth()/2;
       })
       .attr("dy",function(d,i){
-        return i*50+30;
+        return i*rectHeight+rectHeight-padding.bottom;
       })
       .text(function(d){
         return d;
       });
-/*
-  var area = d3.svg.area()
-      .x (function (d) { return d || 1; })
-      .y0(function (d) { return d; })
-      .y1(function (d) { return d; });
-  svg.datum(data);
-  svg.append('path')
-      .attr('class', 'area upper inner')
-      .attr('d', area)
-      .attr('clip-path', 'url(#rect-clip)');*/
-
 
 </script>
 </body>
