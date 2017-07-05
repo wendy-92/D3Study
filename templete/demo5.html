@@ -17,16 +17,16 @@
   var padding = {left:30, right:30, top:20, bottom:20};
   var rectNum = 5; //画布矩形坐标
   var textset = ['CPU','RAM','云硬盘','浮动IP','XXX'];
-  var data = [1,1.2,2.4,0.8,1.6,0.2,1.5];
+  var data = [1,1.2,2.4,0.8,1.6,0.2];
 
   var svg = d3.select("body")     //选择文档中的body元素
       .append("svg")          //添加一个svg元素
       .attr("width", width)       //设定宽度
       .attr("height", height);    //设定高度
 
-  var Xlinear = d3.scaleBand()
+  /*var Xlinear = d3.scaleBand()
       .domain(d3.range(rectNum+2))
-      .range([height - padding.top - padding.bottom, 0]);
+      .range([height, 0]);*/
 
   var Ylinear = d3.scaleLinear()
       .domain([0, d3.max(data)])
@@ -53,14 +53,24 @@
       .style("fill", "transparent");
 
   var area = d3.area()
-      .x(function(d,i) { console.log(Xlinear(i), i); return Xlinear(i)+padding.left; })
-      .y1(function(d,i) { return Ylinear(d)+padding.top; });
+      .x(function(d,i) { return i*rectHeight+padding.top; })
+      .y1(function(d,i) {console.log(Ylinear(d)); return Ylinear(d)+padding.left; });
+
+  var area2 = d3.area()
+      .x(function(d,i) { return i*rectHeight+padding.top; })
+      .y0(function(d,i) {console.log(Ylinear(d)); return Ylinear(d)+padding.left; })
+      .y1(function(d,i) {console.log(Ylinear(d)); return Ylinear(d)+padding.left; });
 
   svg.append("path")
       .datum(data)
       .attr("fill", "steelblue")
       .attr("d", area)
-  //.attr("transform","rotate(-90) translate(-300,"+padding.left+")")
+  .attr("transform","rotate(-90) translate(-300,"+padding.left+")")
+  svg.append("path")
+      .datum(data)
+      .attr("fill", "steelblue")
+      .attr("d", area2)
+      .attr("transform","rotate(-90) translate(-300,"+padding.left+")")
 
 
   //添加文字元素
@@ -73,11 +83,9 @@
       .attr("x", function(d,i){
         return width-250;
       } )
-      .attr("y",function(d){
-        return 0;
-      })
-      .attr("dx",function(){
-        return Xlinear.bandwidth()/2;
+      .attr("y",0)
+      .attr("dx",function(d,i){
+        return i;
       })
       .attr("dy",function(d,i){
         return i*rectHeight+rectHeight-padding.bottom;
