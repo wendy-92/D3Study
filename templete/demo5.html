@@ -17,7 +17,8 @@
   var padding = {left:30, right:30, top:20, bottom:20};
   var rectNum = 5; //画布矩形坐标
   var textset = ['CPU','RAM','云硬盘','浮动IP','XXX'];
-  var data = [1,1.2,2.4,0.8,1.6,0.2];
+  var data = [{0:1,1:1.8,2:2,3:0.3},{0:1.2,1:1,2:2,3:1.4},{0:2.6,1:1.1,2:1.8,3:2.2},{0:1.5,1:2.3,2:1.5,3:0.8},{0:2.0,1:1,2:2,3:2.2},{0:1.9,1:1.5,2:2.5,3:1}];
+  var keys = [0,1,2,3]
 
   var svg = d3.select("body")     //选择文档中的body元素
       .append("svg")          //添加一个svg元素
@@ -29,48 +30,36 @@
       .range([height, 0]);*/
 
   var Ylinear = d3.scaleLinear()
-      .domain([0, d3.max(data)])
+      .domain([0, 3])
       .range([height - padding.top - padding.bottom, 0]);
 
+  var y = d3.scaleLinear().range([height, 0]),
+      z = d3.scaleOrdinal(d3.schemeCategory10);
   //画矩形坐标
   var rect = new Array(rectNum);
 
   var rectHeight = (height-padding.top-padding.bottom)/rectNum;
 
-  svg.selectAll("rect")
-      .data(rect)
-      .enter()
-      .append("rect")
-      .attr("transform","translate(" + padding.left + "," + padding.top + ")")
-      .attr("x", 0)
-      .attr("y",function(d,i){
-        return i*(rectHeight);
-      })
-      .attr("width", width-padding.left-padding.right )
-      .attr("height", rectHeight)
-      .style("stroke", "#848484")
-      .style("stroke-width", 1)
-      .style("fill", "transparent");
+  var stack = d3.stack();
+  stack.keys(keys);
+  z.domain(keys);
+ // console.log(stack,stack(data));
 
   var area = d3.area()
       .x(function(d,i) { return i*rectHeight+padding.top; })
-      .y1(function(d,i) {console.log(Ylinear(d)); return Ylinear(d)+padding.left; });
+      .y0(function(d) { return Ylinear(d[1])+padding.left; })
+      .y1(function(d) { return Ylinear(d[0])+padding.left; })
+      .curve(d3.curveCatmullRom.alpha(0.5));
 
-  var area2 = d3.area()
-      .x(function(d,i) { return i*rectHeight+padding.top; })
-      .y0(function(d,i) {console.log(Ylinear(d)); return Ylinear(d)+padding.left; })
-      .y1(function(d,i) {console.log(Ylinear(d)); return Ylinear(d)+padding.left; });
+  var layer = svg.selectAll(".layer")
+      .data(stack(data))
+      .enter().append("svg")
+      .attr("class", "layer");
 
-  svg.append("path")
-      .datum(data)
-      .attr("fill", "steelblue")
+  layer.append("path")
+      .attr("fill", function(d) { return z(d.key); })
       .attr("d", area)
-  .attr("transform","rotate(-90) translate(-300,"+padding.left+")")
-  svg.append("path")
-      .datum(data)
-      .attr("fill", "steelblue")
-      .attr("d", area2)
-      .attr("transform","rotate(-90) translate(-300,"+padding.left+")")
+  .attr("transform","rotate(90) translate("+0+",-"+320+")")
 
 
   //添加文字元素
@@ -94,6 +83,29 @@
         return d;
       });
 
+  svg.selectAll("rect")
+      .data(rect)
+      .enter()
+      .append("rect")
+      .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+      .attr("x", 0)
+      .attr("y",function(d,i){
+        return i*(rectHeight);
+      })
+      .attr("width", width-padding.left-padding.right )
+      .attr("height", rectHeight)
+      .style("stroke", "#848484")
+      .style("stroke-width", 1)
+      .style("fill", "transparent");
+  var circle = new Array(rectNum);
+  svg.selectAll("circle")
+      .data(circle).enter()
+      .append("rect")
+      .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+      .attr("x", 0)
+      .attr("y",function(d,i){
+        return i*(rectHeight);
+      })
 </script>
 </body>
 </html>
