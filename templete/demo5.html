@@ -57,7 +57,6 @@
       stack.keys(keys);
       stack2.keys(keys2);
       stack3.keys(keys3);
- // console.log(stack,stack(data));
 
   var area = d3.area()
       .x(function(d,i) { return i*rectHeight+padding.top; })
@@ -70,14 +69,6 @@
       .data(stack3(data))
       .enter().append("svg")
       .attr("class", "layer");
-  /*var layer2 = svg.selectAll("body")
-      .data(stack2(data))
-      .enter().append("svg")
-      .attr("class", "layer");*/
-  var layerdot = svg.selectAll("body")
-      .data(stack(data))
-      .enter().append("svg")
-      .attr("class", "circle");
 
   layer.append("path")
       .attr("fill", function(d,i) {
@@ -90,10 +81,7 @@
       })
       .attr("d", area)
       .attr("transform","rotate(90) translate("+0+",-"+320+")");
-  /*layer2.append("path")
-      .attr("fill", function(d) { console.log(z(d.key)); return  d3.color(z(d.key)).darker(0.5); })
-      .attr("d", area)
-      .attr("transform","rotate(90) translate("+0+",-"+320+")");*/
+
 
   //添加文字元素
   var texts = svg.selectAll(".MyText")
@@ -131,19 +119,53 @@
       .style("stroke-width", 1)
       .style("fill", "transparent");
 
-  layerdot.append("circle")
-      .attr("class", "dot")
-      .attr("cx", function (d,i) {
-        //console.log(d);
+
+  var dot = svg.append("g")
+      .selectAll(".dot")
+      .data(stack3(data))
+      .enter().append("g")
+      .selectAll("circle")
+      .attr("class", ".dot")
+      .data(function(d, i) {
+        if(i%2) return d;
+        else return [];
+      })
+      .enter().append("circle")
+      .attr("cx", function(d,i) {
         return i*rectHeight+padding.top;
       })
-      .attr("cy", function (d) {
-        console.log(Ylinear(d[0]),d[0])
-        return Ylinear(d[0][0])+padding.left;
+      .attr("cy", function (d,i) {
+        return Ylinear(d[1])+padding.left;
       })
       .attr("r", 3.5)
+      .attr("fill","#ddd")
       .attr("transform","rotate(90) translate("+0+",-"+320+")");
 
+  function dragsubject() {
+
+      x = circle.x - d3.event.x;
+      y = circle.y - d3.event.y;
+  }
+
+  function dragstarted() {
+    circles.splice(circles.indexOf(d3.event.subject), 1);
+    circles.push(d3.event.subject);
+    d3.event.subject.active = true;
+  }
+
+  function dragged(d) {
+    console.log(d,d3.event.x);
+    /*
+    d3.event.subject.x = d3.event.x;
+    d3.event.subject.y = d3.event.y;*/
+  }
+
+  function dragended() {
+    d3.event.subject.active = false;
+  }
+
+  d3.selectAll("circle").call(d3.drag()
+      .on("drag", dragged));
 </script>
 </body>
 </html>
