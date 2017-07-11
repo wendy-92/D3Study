@@ -70,7 +70,7 @@
       .enter().append("svg")
       .attr("class", "layer");
 
-  layer.append("path")
+  var layerpath = layer.append("path")
       .attr("fill", function(d,i) {
         if(i%2){
           return  z(Math.floor(i/2));
@@ -104,7 +104,7 @@
         return d;
       });
 
-  svg.selectAll("rect")
+  var rect = svg.selectAll("rect")
       .data(rect)
       .enter()
       .append("rect")
@@ -113,11 +113,12 @@
       .attr("y",function(d,i){
         return i*(rectHeight);
       })
-      .attr("width", width-padding.left-padding.right )
-      .attr("height", rectHeight)
+      .attr("width", Ylinear(0) )
+      .attr("height", height)
       .style("stroke", "#848484")
       .style("stroke-width", 1)
       .style("fill", "transparent");
+
 
 
   var dot = svg.append("g")
@@ -140,32 +141,22 @@
       .attr("r", 3.5)
       .attr("fill","#ddd")
       .attr("transform","rotate(90) translate("+0+",-"+320+")");
+  
+  svg.call(d3.zoom()
+      .scaleExtent([1 / 4, 8])
+      .on("zoom", zoomed));
 
-  function dragsubject() {
-
-      x = circle.x - d3.event.x;
-      y = circle.y - d3.event.y;
+  function zoomed() {
+    var xz = d3.event.transform.rescaleY(Ylinear);
+    rect.attr("width",xz(0));
+    d3.selectAll("circle").attr("cy", function (d) {
+          return xz(d[1])+padding.left;
+        });
+    layerpath.attr("d", area
+            .y0(function(d) { return xz(d[1])+padding.left; })
+            .y1(function(d) { return xz(d[0])+padding.left; })
+    );
   }
-
-  function dragstarted() {
-    circles.splice(circles.indexOf(d3.event.subject), 1);
-    circles.push(d3.event.subject);
-    d3.event.subject.active = true;
-  }
-
-  function dragged(d) {
-    console.log(d,d3.event.x);
-    /*
-    d3.event.subject.x = d3.event.x;
-    d3.event.subject.y = d3.event.y;*/
-  }
-
-  function dragended() {
-    d3.event.subject.active = false;
-  }
-
-  d3.selectAll("circle").call(d3.drag()
-      .on("drag", dragged));
 </script>
 </body>
 </html>
