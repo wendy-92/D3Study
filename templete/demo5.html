@@ -43,9 +43,15 @@
       .domain([0, 5])
       .range([height - padding.top - padding.bottom, 0]);
 
+  var RectLinear = d3.scaleLinear()
+      .domain([0, 5])
+      .range([width - padding.right - padding.left, 0]);
+
   var y = d3.scaleLinear().range([height, 0]),
       z = d3.scaleOrdinal(d3.schemeCategory10);
       z.domain(keys);
+
+  var xAxis = d3.axisBottom(RectLinear);
   //画矩形坐标
   var rect = new Array(rectNum);
 
@@ -113,8 +119,8 @@
       .attr("y",function(d,i){
         return i*(rectHeight);
       })
-      .attr("width", Ylinear(0) )
-      .attr("height", height)
+      .attr("width", RectLinear(0) )
+      .attr("height", rectHeight)
       .style("stroke", "#848484")
       .style("stroke-width", 1)
       .style("fill", "transparent");
@@ -147,8 +153,10 @@
       .on("zoom", zoomed));
 
   function zoomed() {
+    console.log(d3.event);
     var xz = d3.event.transform.rescaleY(Ylinear);
-    rect.attr("width",xz(0));
+    var rectz = d3.event.transform.rescaleY(RectLinear);
+    rect.attr("width",rectz(0));
     d3.selectAll("circle").attr("cy", function (d) {
           return xz(d[1])+padding.left;
         });
@@ -157,6 +165,11 @@
             .y1(function(d) { return xz(d[0])+padding.left; })
     );
   }
+
+  svg.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate("+padding.left+"," + 280 + ")")
+      .call(xAxis);
 </script>
 </body>
 </html>
