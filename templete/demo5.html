@@ -39,7 +39,7 @@
       .domain(d3.range(rectNum+2))
       .range([height, 0]);*/
 
-  var Ylinear = d3.scaleLinear()
+ var Ylinear = d3.scaleLinear()
       .domain([0, 5])
       .range([height - padding.top - padding.bottom, 0]);
 
@@ -53,7 +53,7 @@
 
   var xAxis = d3.axisBottom(RectLinear);
   //画矩形坐标
-  var rect = new Array(rectNum);
+  /*  var rect = new Array(rectNum);
 
   var rectHeight = (height-padding.top-padding.bottom)/rectNum;
 
@@ -126,7 +126,6 @@
       .style("fill", "transparent");
 
 
-
   var dot = svg.append("g")
       .selectAll(".dot")
       .data(stack3(data))
@@ -147,10 +146,11 @@
       .attr("r", 3.5)
       .attr("fill","#ddd")
       .attr("transform","rotate(90) translate("+0+",-"+320+")");
-  
-  svg.call(d3.zoom()
-      .scaleExtent([1 / 4, 8])
-      .on("zoom", zoomed));
+
+  var zoom = d3.zoom()
+      .on("zoom", zoomed);
+  svg.call(zoom)
+      .on("dragstart", null);
 
   function zoomed() {
     console.log(d3.event);
@@ -170,6 +170,23 @@
       .attr("class", "axis axis--x")
       .attr("transform", "translate("+padding.left+"," + 280 + ")")
       .call(xAxis);
+
+  */
+
+  var x = d3.scaleTime().range([0, width])
+          .domain(d3.extent(data, function (d) { return d.date; })),
+      y = d3.scaleLinear().range([height, 0])
+          .domain([0, d3.max(data, function (d) { return d.pct95; })]);
+/*
+  var xAxis = d3.svg.axis().scale(x).orient('bottom')
+          .innerTickSize(-chartHeight).outerTickSize(0).tickPadding(10),
+      yAxis = d3.svg.axis().scale(y).orient('left')
+          .innerTickSize(-width).outerTickSize(0).tickPadding(10);*/
+
+  var axes = svg.append('g')
+      .attr('clip-path', 'url(#axes-clip)');
+
+  var axis = d3.axisLeft(Ylinear);
 </script>
 </body>
 </html>

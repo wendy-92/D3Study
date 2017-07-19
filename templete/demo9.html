@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>demo9</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+<h2>demo9</h2>
+<script>
+  var width = 1000;  //画布的宽度
+  var height = 300;   //画布的高度
+  var textset = ['CPU','RAM','云硬盘','浮动IP','XXX'];
+  var svg = d3.select("body")     //选择文档中的body元素
+      .append("svg")          //添加一个svg元素
+      .attr("width", width)       //设定宽度
+      .attr("height", height);    //设定高度
+
+  var margin = {top: 20, right: 0, bottom: 20, left: 0},
+      g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var y = d3.scaleLinear().domain([0, 5]).range([height, 0]);
+
+  var yAxis = d3.axisRight(y)
+      .ticks(5)
+      .tickSize(width)
+      .tickFormat(function(d) {
+        console.log(d)
+        return d;
+      });
+
+  g.append("g")
+      .call(customYAxis);
+
+
+  function customYAxis(g) {
+    g.call(yAxis);
+    g.select(".domain").remove();
+    g.selectAll(".tick:not(:first-of-type) line").attr("stroke", "#777").attr("stroke-dasharray", "2,2");
+    g.selectAll(".tick text").attr("x", width-50).attr("dy", -4);
+  }
+</script>
+</body>
+</html>
