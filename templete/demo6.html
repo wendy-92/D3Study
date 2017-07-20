@@ -1,88 +1,136 @@
-
-<!DOCTYPE html>
-<meta charset="utf-8">
-<title>Streamgraph</title>
-<style>
-
-    button {
-        position: absolute;
-        left: 10px;
-        top: 10px;
-    }
-
-</style>
-<button onclick="transition()">Update</button>
-<svg width="960" height="500"></svg>
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>demo6</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+<h2>demo6</h2>
 <script>
+  var data = [
+    {0:1,0.5:0.7,1:1.8,1.5:1.2,2:2,2.5:1.3,3:0.3,3.5:0.2},
+    {0:1.2,0.5:1.0,1:1,1.5:0.5,2:2,2.5:1,3:1.4,3.5:1},
+    {0:2,0.5:1,1:1.1,1.5:1,2:1.8,2.5:1.5,3:2.2,3.5:2},
+    {0:1.5,0.5:1,1:2,1.5:2,2:1.5,2.5:1.2,3:0.8,3.5:0.4},
+    {0:2.0,0.5:1,1:1,1.5:0.5,2:2,2.5:1,3:2.2,3.5:2},
+    {0:1.9,0.5:1,1:1.5,1.5:1,2:2.5,2.5:2,3:1,3.5:0.5}
+  ];
 
-  var n = 20, // number of layers
-      m = 200, // number of samples per layer
-      k = 10; // number of bumps per layer
+  var height = 300,
+      width = 1000;
 
-  var stack = d3.stack().keys(d3.range(n)).offset(d3.stackOffsetExpand),
-      layers0 = stack(d3.transpose(d3.range(n).map(function() { return bumps(m, k); }))),
-      layers1 = stack(d3.transpose(d3.range(n).map(function() { return bumps(m, k); }))),
-      layers = layers0.concat(layers1);
+  var svg = d3.select("body")     //选择文档中的body元素
+      .append("svg")          //添加一个svg元素
+      .attr("width", width)       //设定宽度
+      .attr("height", height);    //设定高度
+  var g = svg.append("g").attr("transform", "translate(35, 20)");
 
-  var svg = d3.select("svg"),
-      width = +svg.attr("width"),
-      height = +svg.attr("height");
+  var minX = d3.min(data, function(d){return d.x});
+  var maxX = d3.max(data, function(d){return d.x});
+  var minY = d3.min(data, function(d){return d.y});
+  var maxY = d3.max(data, function(d){return d.y});
 
-  var x = d3.scaleLinear()
-      .domain([0, m - 1])
-      .range([0, width]);
+  console.log(minX,minY,maxX,maxY);
 
-  var y = d3.scaleLinear()
-      .domain([d3.min(layers, stackMin), d3.max(layers, stackMax)])
-      .range([height, 0]);
+  var scaleX = d3.scaleLinear()
+      .range([0,width])
+      .domain([0,5]);
 
-  var z = d3.interpolateCool;
+  var scaleY = d3.scaleLinear()
+      .range([height,0])
+      .domain([0,5]);
 
   var area = d3.area()
-      .x(function(d, i) { return x(i); })
-      .y0(function(d) { return y(d[0]); })
-      .y1(function(d) { return y(d[1]); });
+      .y(function(d){return scaleY(d[0]); })
+      .x0(0)
+      .x1(function(d) { return scaleX(d[0]); })
+      .curve(d3.curveCatmullRom.alpha(0.5));
 
-  svg.selectAll("path")
-      .data(layers0)
-      .enter().append("path")
+  var stack = d3.stack(),
+      keys = [0,0.5,1,1.5,2,2.5,3,3.5],
+  z = d3.scaleOrdinal(d3.schemeCategory10);
+  z.domain(keys);
+  stack.keys(keys);
+
+  var layer = svg.selectAll("body")
+      .data(stack(data))
+      .enter()
+      .append("svg")
+      .attr("class", "layer");
+
+  var layerpath = layer.append("path")
+      .attr("fill", function(d,i) {
+        console.log(d,z(z(Math.floor(i/2))));
+        if(i%2){
+          return  z(Math.floor(i/2));
+        }else {
+          return  d3.color(z(Math.floor(i/2))).darker(1);
+        }
+
+      })
       .attr("d", area)
-      .attr("fill", function() { return z(Math.random()); });
+      .attr("transform","rotate(90) translate("+0+",-"+320+")");
 
-  function stackMax(layer) {
-    return d3.max(layer, function(d) { return d[1]; });
-  }
+  //axis
+  var axisX = d3.axisBottom()
+      .scale(scaleX)
+      .ticks(10);
 
-  function stackMin(layer) {
-    return d3.min(layer, function(d) { return d[0]; });
-  }
+  var axisY = d3.axisLeft()
+      .scale(scaleY)
+      .ticks(5);
 
-  function transition() {
-    var t;
-    d3.selectAll("path")
-        .data((t = layers1, layers1 = layers0, layers0 = t))
-        .transition()
-        .duration(2500)
-        .attr("d", area);
-  }
+  //grid
+  var axisXGrid = d3.axisBottom()
+      .scale(scaleX);
 
-  // Inspired by Lee Byron’s test data generator.
-  function bumps(n, m) {
-    var a = [], i;
-    for (i = 0; i < n; ++i) a[i] = 0;
-    for (i = 0; i < m; ++i) bump(a, n);
-    return a;
-  }
+  var axisYGrid = d3.axisLeft()
+      .scale(scaleY)
+      .ticks(5)
+      .tickFormat("")
+      .tickSize(-width,0);
 
-  function bump(a, n) {
-    var x = 1 / (0.1 + Math.random()),
-        y = 2 * Math.random() - 0.5,
-        z = 10 / (0.1 + Math.random());
-    for (var i = 0; i < n; i++) {
-      var w = (i / n - y) * z;
-      a[i] += x * Math.exp(-w * w);
-    }
-  }
+  // Axis Grid line
+  g.append('g')
+      .call(axisXGrid)
+      .attr('fill','none')
+      .attr('stroke','rgba(0,0,0,.1)')
+      .attr('transform','translate(35,20)');
 
+  g.append('g')
+      .call(axisYGrid)
+      .attr('fill','none')
+      .attr('stroke','rgba(0,0,0,.1)')
+      .attr('transform','translate(35,20)');
+
+  // Axis
+  g.append('g')
+      .call(axisX)
+      .attr('fill','none')
+      .attr('stroke','#000')
+      .attr('transform','translate(35,20)')
+      .selectAll('text')
+      .attr('fill','none')
+      .attr('stroke','#000')
+      .style({
+        'font-size':'11px'
+      });
+
+  g.append('g')
+      .call(axisY)
+      .attr('fill','none')
+      .attr('stroke','rgba(0,0,0,.1)')
+      .attr('transform','translate(35,20)')
+      .selectAll('text')
+      .attr('fill','none')
+      .attr('stroke','#000')
+      .style({
+        'font-size':'10px'
+      });
 </script>
+</body>
+</html>
