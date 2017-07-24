@@ -31,12 +31,14 @@
 
   var margin = {top: 20, right: 0, bottom: 20, left: 0},
       g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var container = g.append('g');
 
-  var y = d3.scaleLinear().domain([0, 12]).range([height, 0]),
+  var x = d3.scaleLinear().domain([12, 0]).range([height, 0]),
+      y = d3.scaleLinear().domain([5, 0]).range([height, 0]),
       z = d3.scaleOrdinal(d3.schemeCategory10);
   z.domain(keys);
   var yAxis = d3.axisRight(y)
-      .ticks(5)
+      .ticks(6)
       .tickSize(width)
       .tickFormat(function(d) {
         return d;
@@ -48,19 +50,68 @@
   stack3.keys(keys3);
 
   var area = d3.area()
-      .y(function(d,i) { return 50; })
-      .x0(function(d) { console.log(y(d[1]),d[1]); return d[1]*100; })
-      .x1(function(d) { return d[0]*100; })
+      .y(function(d,i) { return y(i); })
+      .x0(function(d) {console.log(d[0]); return x(d[0]); })
+      .x1(function(d) {console.log(d[1]); return x(d[1]); })
+      .defined(function(d) { return d; })
       .curve(d3.curveCatmullRom.alpha(0.5));
-  g.append("path")
-      .datum(data)
-      .attr("fill", "steelblue")
+
+  var layer = g.selectAll("svg")
+      .data(stack3(data))
+      .enter().append("svg")
+      .attr("class", "layer");
+
+  layer.append("path")
+      .attr("fill", function(d,i) {
+        if(i%2){
+          return  z(Math.floor(i/2));
+        }else {
+          return  d3.color(z(Math.floor(i/2))).darker(1);
+        }
+
+      })
       .attr("d", area);
+
+
   function customYAxis(g) {
     g.call(yAxis);
     g.select(".domain").remove();
     g.selectAll(".tick:not(:first-of-type) line").attr("stroke", "#777").attr("stroke-dasharray", "2,2");
     g.selectAll(".tick text").attr("x", width-50).attr("dy", -4);
+  }
+
+
+  var dot = g.append("svg")
+      .selectAll(".dot")
+      .data(stack3(data))
+      .enter().append("g")
+      .selectAll("circle")
+      .attr("class", ".dot")
+      .data(function(d, i) {
+        if(i%2) return d;
+        else return [];
+      })
+      .enter().append("circle")
+      .attr("cy", function(d,i) {
+        return y(i);
+      })
+      .attr("cx", function (d,i) {
+        return x(d[1]);
+      })
+      .attr("r", 3.5)
+      .attr("fill","#ddd");
+  g.call(d3.zoom()
+      .scaleExtent([1, 10])
+      .on("zoom", zoomed));
+  function zoomed() {
+    g.attr("transform", d3.event.transform);
+  }
+
+  dot.call(d3.drag()
+      .on("drag",draged));
+  function draged() {
+    console.log('3');
+    
   }
 </script>
 </body>
